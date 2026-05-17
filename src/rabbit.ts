@@ -206,6 +206,22 @@ export class Rabbit {
                 }
               }, 0);
             }
+
+            const textContent = parentP.textContent || "";
+            const isList = textContent.startsWith("• ");
+            const hasContent = textContent.replace("• ", "").trim().length > 0;
+
+            if (isList && hasContent) {
+              ke.preventDefault();
+              const newP = document.createElement("p");
+              newP.innerHTML = "• ";
+              parentP.parentNode?.insertBefore(newP, parentP.nextSibling);
+              selection.removeAllRanges();
+              const newRange = document.createRange();
+              newRange.selectNodeContents(newP);
+              newRange.collapse(false);
+              selection.addRange(newRange);
+            }
           }
         }
       }
@@ -346,42 +362,282 @@ export class Rabbit {
 
     this._tooltip.innerHTML = "";
 
-    const alignLeft = me("button", { className: "rabbit-tooltip-btn" }, "⫷");
-    const alignCenter = me("button", { className: "rabbit-tooltip-btn" }, "⫶");
-    const alignRight = me("button", { className: "rabbit-tooltip-btn" }, "⫸");
+    const wrapper = document.createElement("div");
+    wrapper.className = "rabbit-tooltip-wrapper";
 
-    alignLeft.onclick = () => {
-      this.selectedElement!.style.textAlign = "left";
+    const moveBtn = document.createElement("button");
+    moveBtn.className = "rabbit-tooltip-icon";
+    moveBtn.innerHTML = "⋮⋮";
+    moveBtn.title = "Move";
+
+    const plusBtn = document.createElement("button");
+    plusBtn.className = "rabbit-tooltip-icon";
+    plusBtn.innerHTML = "+";
+    plusBtn.title = "Add";
+
+    const divider = document.createElement("div");
+    divider.className = "rabbit-tooltip-divider";
+
+    wrapper.appendChild(moveBtn);
+    wrapper.appendChild(divider);
+    wrapper.appendChild(plusBtn);
+
+    const moveMenu = document.createElement("div");
+    moveMenu.className = "rabbit-tooltip-menu rabbit-tooltip-move-menu";
+
+    const isHeader = this.selectedElement?.style.fontWeight === "bold" && 
+                     (this.selectedElement?.style.fontSize?.includes("em") || 
+                      this.selectedElement?.tagName === "H1" ||
+                      this.selectedElement?.tagName === "H2" ||
+                      this.selectedElement?.tagName === "H3" ||
+                      this.selectedElement?.tagName === "H4" ||
+                      this.selectedElement?.tagName === "H5" ||
+                      this.selectedElement?.tagName === "H6");
+
+    if (isHeader) {
+      const headerSizes = [
+        { level: "1", label: "H1" },
+        { level: "2", label: "H2" },
+        { level: "3", label: "H3" },
+        { level: "4", label: "H4" },
+        { level: "5", label: "H5" },
+        { level: "6", label: "H6" },
+      ];
+      const headerMenu = document.createElement("div");
+      headerMenu.className = "rabbit-tooltip-menu-item rabbit-tooltip-menu-parent";
+      headerMenu.innerHTML = "Header size ›";
+      const headerSub = document.createElement("div");
+      headerSub.className = "rabbit-tooltip-submenu";
+      headerSizes.forEach(h => {
+        const item = document.createElement("div");
+        item.className = "rabbit-tooltip-submenu-item";
+        item.dataset.headerLevel = h.level;
+        item.innerHTML = h.label;
+        headerSub.appendChild(item);
+      });
+      headerMenu.appendChild(headerSub);
+      moveMenu.appendChild(headerMenu);
+
+      headerSub.querySelectorAll(".rabbit-tooltip-submenu-item").forEach(item => {
+        item.addEventListener("click", (e) => {
+          const level = (e.target as HTMLElement).dataset.headerLevel;
+          const sizes: Record<string, string> = {
+            "1": "2em", "2": "1.5em", "3": "1.25em", "4": "1em", "5": "0.875em", "6": "0.75em"
+          };
+          this.selectedElement!.style.fontSize = sizes[level!];
+          this.selectedElement!.style.fontWeight = "bold";
+          this._hideTooltip();
+          this._el?.focus();
+        });
+      });
+    }
+
+    const convertTo = document.createElement("div");
+    convertTo.className = "rabbit-tooltip-menu-item rabbit-tooltip-menu-parent";
+    convertTo.innerHTML = "Convert to ›";
+    const convertSub = document.createElement("div");
+    convertSub.className = "rabbit-tooltip-submenu";
+    convertSub.innerHTML = `
+      <div class="rabbit-tooltip-submenu-item" data-type="text">T Text</div>
+      <div class="rabbit-tooltip-submenu-item" data-type="heading">H Heading</div>
+      <div class="rabbit-tooltip-submenu-item" data-type="list">1 List</div>
+      <div class="rabbit-tooltip-submenu-item" data-type="quote">" Quote</div>
+    `;
+    convertTo.appendChild(convertSub);
+
+    const moveUp = document.createElement("div");
+    moveUp.className = "rabbit-tooltip-menu-item";
+    moveUp.innerHTML = "^ Move up";
+
+    const moveDown = document.createElement("div");
+    moveDown.className = "rabbit-tooltip-menu-item";
+    moveDown.innerHTML = "v Move down";
+
+    const deleteItem = document.createElement("div");
+    deleteItem.className = "rabbit-tooltip-menu-item rabbit-tooltip-delete";
+    deleteItem.innerHTML = "× Delete";
+
+    moveMenu.appendChild(convertTo);
+    moveMenu.appendChild(moveUp);
+    moveMenu.appendChild(moveDown);
+    moveMenu.appendChild(deleteItem);
+
+    const addMenu = document.createElement("div");
+    addMenu.className = "rabbit-tooltip-menu rabbit-tooltip-add-menu";
+
+    const addItems = [
+      { type: "text", label: "Text", icon: "T" },
+      { type: "heading", label: "Heading", icon: "H" },
+      { type: "image", label: "Image", icon: "I" },
+      { type: "list", label: "List", icon: "•" },
+      { type: "code", label: "Code", icon: "<>" },
+      { type: "quote", label: "Quote", icon: '"' },
+      { type: "delimiter", label: "Delimiter", icon: "—" },
+      { type: "table", label: "Table", icon: "▦" },
+      { type: "html", label: "Raw HTML", icon: "</>" },
+      { type: "warning", label: "Warning", icon: "!" },
+      { type: "checklist", label: "Checklist", icon: "☑" },
+    ];
+
+    addItems.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "rabbit-tooltip-menu-item";
+      div.dataset.type = item.type;
+      div.innerHTML = `<span class="rabbit-tooltip-icon-left"></span>${item.icon} ${item.label}`;
+      addMenu.appendChild(div);
+    });
+
+    moveBtn.onclick = (e) => {
+      e.stopPropagation();
+      addMenu.style.display = "none";
+      moveMenu.style.display = moveMenu.style.display === "block" ? "none" : "block";
+    };
+
+    plusBtn.onclick = (e) => {
+      e.stopPropagation();
+      moveMenu.style.display = "none";
+      addMenu.style.display = addMenu.style.display === "block" ? "none" : "block";
+    };
+
+    convertTo.onmouseenter = () => {
+      convertSub.style.display = "block";
+    };
+    convertTo.onmouseleave = () => {
+      convertSub.style.display = "none";
+    };
+
+    convertSub.querySelectorAll(".rabbit-tooltip-submenu-item").forEach(item => {
+      item.addEventListener("click", (e) => {
+        const type = (e.target as HTMLElement).dataset.type;
+        this._handleConvert(type!);
+        this._hideTooltip();
+        this._el?.focus();
+      });
+    });
+
+    moveUp.onclick = () => {
+      if (this.selectedElement?.previousElementSibling) {
+        this.selectedElement.parentNode?.insertBefore(this.selectedElement, this.selectedElement.previousElementSibling);
+      }
       this._hideTooltip();
       this._el?.focus();
     };
-    alignCenter.onclick = () => {
-      this.selectedElement!.style.textAlign = "center";
-      this._hideTooltip();
-      this._el?.focus();
-    };
-    alignRight.onclick = () => {
-      this.selectedElement!.style.textAlign = "right";
+
+    moveDown.onclick = () => {
+      if (this.selectedElement?.nextElementSibling) {
+        this.selectedElement.parentNode?.insertBefore(this.selectedElement.nextElementSibling, this.selectedElement);
+      }
       this._hideTooltip();
       this._el?.focus();
     };
 
-    const toolRow = document.createElement("div");
-    toolRow.style.display = "flex";
-    toolRow.style.gap = "4px";
-    toolRow.appendChild(alignLeft);
-    toolRow.appendChild(alignCenter);
-    toolRow.appendChild(alignRight);
+    deleteItem.onclick = () => {
+      this.selectedElement?.remove();
+      this._hideTooltip();
+      this._el?.focus();
+    };
 
-    this._tooltip.appendChild(toolRow);
+    addMenu.querySelectorAll(".rabbit-tooltip-menu-item").forEach(item => {
+      item.addEventListener("click", (e) => {
+        const type = (e.currentTarget as HTMLElement).dataset.type;
+        this._handleAddBlock(type!);
+        this._hideTooltip();
+        this._el?.focus();
+      });
+    });
+
+    const tooltipBody = document.createElement("div");
+    tooltipBody.style.position = "relative";
+    tooltipBody.appendChild(wrapper);
+    tooltipBody.appendChild(moveMenu);
+    tooltipBody.appendChild(addMenu);
+
+    this._tooltip.innerHTML = "";
+    this._tooltip.appendChild(tooltipBody);
     this._tooltip.style.display = "block";
     this._tooltip.style.top = `${y + 20}px`;
     this._tooltip.style.left = `${x}px`;
   }
 
+  _handleConvert(type: string) {
+    if (!this.selectedElement) return;
+    switch (type) {
+      case "heading":
+        this.selectedElement.style.fontSize = "1.5em";
+        this.selectedElement.style.fontWeight = "bold";
+        break;
+      case "list":
+        this.selectedElement.innerHTML = "• " + this.selectedElement.innerHTML;
+        break;
+      case "quote":
+        this.selectedElement.style.borderLeft = "3px solid #ccc";
+        this.selectedElement.style.paddingLeft = "10px";
+        this.selectedElement.style.fontStyle = "italic";
+        break;
+      case "text":
+      default:
+        this.selectedElement.style.fontSize = "";
+        this.selectedElement.style.fontWeight = "";
+        this.selectedElement.style.borderLeft = "";
+        this.selectedElement.style.paddingLeft = "";
+        this.selectedElement.style.fontStyle = "";
+        break;
+    }
+  }
+
+  _handleAddBlock(type: string) {
+    if (!this._el) return;
+    let newBlock: HTMLElement = document.createElement("p");
+    newBlock.innerHTML = "<br>";
+    switch (type) {
+      case "heading":
+        newBlock.style.fontSize = "1.5em";
+        newBlock.style.fontWeight = "bold";
+        break;
+      case "list":
+        newBlock.innerHTML = "• ";
+        break;
+      case "quote":
+        newBlock.style.borderLeft = "3px solid #ccc";
+        newBlock.style.paddingLeft = "10px";
+        newBlock.style.fontStyle = "italic";
+        break;
+      case "image":
+        newBlock.innerHTML = "[Image placeholder]";
+        break;
+      case "code":
+        newBlock.style.fontFamily = "monospace";
+        newBlock.style.background = "#f4f4f4";
+        newBlock.style.padding = "8px";
+        break;
+      case "delimiter":
+        newBlock = document.createElement("div");
+        newBlock.className = "ce-delimiter cdx-block";
+        break;
+      case "table":
+        newBlock.innerHTML = "<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>";
+        break;
+      case "html":
+        newBlock.innerHTML = "<code>&lt;html&gt;</code>";
+        break;
+      case "warning":
+        newBlock.style.background = "#fff3cd";
+        newBlock.style.border = "1px solid #ffc107";
+        newBlock.style.padding = "10px";
+        newBlock.innerHTML = "⚠ Warning";
+        break;
+      case "checklist":
+        newBlock.innerHTML = "☐ ";
+        break;
+    }
+    this._el.appendChild(newBlock);
+    newBlock.scrollIntoView({ behavior: "smooth" });
+  }
+
   _hideTooltip() {
     if (this._tooltip) {
       this._tooltip.style.display = "none";
+      this._tooltip.innerHTML = "";
     }
   }
 
