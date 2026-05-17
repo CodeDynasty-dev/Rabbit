@@ -216,16 +216,53 @@ export class Rabbit {
 
             const textContent = parentP.textContent || "";
             const isList = textContent.startsWith("• ");
-            const hasContent = textContent.replace("• ", "").trim().length > 0;
+            const isChecklist = parentP.querySelector(".rabbit-checklist-container") !== null;
+            const hasContent = textContent.replace(/^[☐☑]?\s*/, "").trim().length > 0;
 
-            if (isList && hasContent) {
+            if ((isList || isChecklist) && hasContent) {
               ke.preventDefault();
               const newP = document.createElement("p");
-              newP.innerHTML = "• ";
+              if (isChecklist) {
+                const checkbox = document.createElement("span");
+                checkbox.className = "rabbit-checkbox";
+                checkbox.innerHTML = "☐";
+                checkbox.contentEditable = "false";
+                checkbox.style.cursor = "pointer";
+                checkbox.style.marginRight = "8px";
+                checkbox.style.fontSize = "16px";
+                checkbox.style.lineHeight = "1";
+                checkbox.onclick = (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  checkbox.innerHTML = checkbox.innerHTML === "☐" ? "☑" : "☐";
+                  checkbox.style.color = checkbox.innerHTML === "☑" ? "#10b981" : "";
+                };
+                const container = document.createElement("div");
+                container.className = "rabbit-checklist-container";
+                container.style.display = "flex";
+                container.style.alignItems = "center";
+                container.style.gap = "8px";
+                container.style.padding = "4px 0";
+                container.appendChild(checkbox);
+                const content = document.createElement("span");
+                content.style.flex = "1";
+                content.innerHTML = "<br>";
+                container.appendChild(content);
+                newP.appendChild(container);
+                newP.style.padding = "8px 12px";
+                newP.style.borderRadius = "6px";
+                newP.style.background = "rgba(99, 102, 241, 0.04)";
+              } else {
+                newP.innerHTML = "• ";
+              }
               parentP.parentNode?.insertBefore(newP, parentP.nextSibling);
               selection.removeAllRanges();
               const newRange = document.createRange();
-              newRange.selectNodeContents(newP);
+              if (isChecklist) {
+                newRange.selectNodeContents(newP.querySelector("span") || newP);
+              } else {
+                newRange.selectNodeContents(newP);
+              }
               newRange.collapse(false);
               selection.addRange(newRange);
             }
@@ -673,17 +710,14 @@ const addItems = [
         checkbox.style.cursor = "pointer";
         checkbox.style.marginRight = "8px";
         checkbox.style.userSelect = "none";
+        checkbox.style.fontSize = "16px";
+        checkbox.style.lineHeight = "1";
 
         checkbox.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          if (checkbox.innerHTML === "☐") {
-            checkbox.innerHTML = "☑";
-            checkbox.style.color = "#10b981";
-          } else {
-            checkbox.innerHTML = "☐";
-            checkbox.style.color = "";
-          }
+          checkbox.innerHTML = checkbox.innerHTML === "☐" ? "☑" : "☐";
+          checkbox.style.color = checkbox.innerHTML === "☑" ? "#10b981" : "";
         };
 
         const content = document.createElement("span");
@@ -691,8 +725,9 @@ const addItems = [
         content.style.flex = "1";
 
         const container = document.createElement("div");
+        container.className = "rabbit-checklist-container";
         container.style.display = "flex";
-        container.style.alignItems = "flex-start";
+        container.style.alignItems = "center";
         container.style.gap = "8px";
         container.style.padding = "4px 0";
 

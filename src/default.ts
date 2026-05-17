@@ -414,8 +414,17 @@ const activeStates: Record<string, () => boolean> = {
       case "checklist":
         if (el.querySelector(".rabbit-checklist-container")) {
           const container = el.querySelector(".rabbit-checklist-container") as HTMLElement;
-          const content = container.querySelector("span")?.innerHTML || container.innerHTML;
-          el.innerHTML = content;
+          const spans = container.querySelectorAll("span");
+          let content = "";
+          spans.forEach((span) => {
+            if (!span.classList.contains("rabbit-checkbox")) {
+              content = span.innerHTML;
+            }
+          });
+          if (!content) {
+            content = container.innerHTML.replace(/<span[^>]*rabbit-checkbox[^>]*>.*?<\/span>/gi, "").trim();
+          }
+          el.innerHTML = content || "<br>";
           el.style.padding = "";
           el.style.borderRadius = "";
           el.style.background = "";
@@ -495,12 +504,22 @@ const activeStates: Record<string, () => boolean> = {
         }
         break;
       case "delimiter": {
-        const del = document.createElement("div");
-        del.className = "ce-delimiter cdx-block";
-        const newP = document.createElement("p");
-        newP.innerHTML = "<br>";
-        el.insertAdjacentElement("afterend", del);
-        del.insertAdjacentElement("afterend", newP);
+        const existingDel = el.nextElementSibling;
+        if (existingDel?.classList.contains("ce-delimiter")) {
+          const newP = document.createElement("p");
+          newP.innerHTML = "<br>";
+          existingDel.insertAdjacentElement("afterend", newP);
+          existingDel.remove();
+          el.focus();
+        } else {
+          const del = document.createElement("div");
+          del.className = "ce-delimiter cdx-block";
+          const newP = document.createElement("p");
+          newP.innerHTML = "<br>";
+          el.insertAdjacentElement("afterend", del);
+          del.insertAdjacentElement("afterend", newP);
+          del.nextElementSibling?.scrollIntoView({ behavior: "smooth" });
+        }
         break;
       }
 case "table": {
