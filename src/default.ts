@@ -243,8 +243,8 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
             range: Rabbit.range,
           }),
       },
-      // { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
-      // { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
+      { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
+      { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
     ];
 
     let isFabOpen = false;
@@ -291,41 +291,75 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
   };
 
   const applyInlineFormat = (format: string) => {
-    if (!Rabbit.selection || !Rabbit.range) return;
+    const hasSelection = Rabbit.selection && Rabbit.range && Rabbit.selection.length > 0;
+    
+    if (hasSelection && Rabbit.range) {
+      const selection = Rabbit.selection;
+      const range = Rabbit.range;
 
-    const selection = Rabbit.selection;
-    const range = Rabbit.range;
-
-    switch (format) {
-      case "bold":
-        const bold = document.createElement("strong");
-        bold.textContent = selection;
-        bold.className = "rabbit-bold";
-        range.deleteContents();
-        range.insertNode(bold);
-        break;
-      case "italic":
-        const italic = document.createElement("em");
-        italic.textContent = selection;
-        italic.className = "rabbit-italic";
-        range.deleteContents();
-        range.insertNode(italic);
-        break;
-      case "strike":
-        const strike = document.createElement("span");
-        strike.textContent = selection;
-        strike.className = "rabbit-strike";
-        strike.style.textDecoration = "line-through";
-        range.deleteContents();
-        range.insertNode(strike);
-        break;
-      case "code":
-        const code = document.createElement("code");
-        code.textContent = selection;
-        code.className = "rabbit-code";
-        range.deleteContents();
-        range.insertNode(code);
-        break;
+      switch (format) {
+        case "bold": {
+          const bold = document.createElement("strong");
+          bold.textContent = selection;
+          bold.className = "rabbit-bold";
+          range.deleteContents();
+          range.insertNode(bold);
+          break;
+        }
+        case "italic": {
+          const italic = document.createElement("em");
+          italic.textContent = selection;
+          italic.className = "rabbit-italic";
+          range.deleteContents();
+          range.insertNode(italic);
+          break;
+        }
+        case "strike": {
+          const strike = document.createElement("span");
+          strike.textContent = selection;
+          strike.className = "rabbit-strike";
+          strike.style.textDecoration = "line-through";
+          range.deleteContents();
+          range.insertNode(strike);
+          break;
+        }
+        case "code": {
+          const code = document.createElement("code");
+          code.textContent = selection;
+          code.className = "rabbit-code";
+          range.deleteContents();
+          range.insertNode(code);
+          break;
+        }
+      }
+    } else if (Rabbit.selectedElement) {
+      const el = Rabbit.selectedElement;
+      switch (format) {
+        case "bold":
+          el.style.fontWeight = el.style.fontWeight === "bold" ? "" : "bold";
+          break;
+        case "italic":
+          el.style.fontStyle = el.style.fontStyle === "italic" ? "" : "italic";
+          break;
+        case "strike":
+          el.style.textDecoration = el.style.textDecoration === "line-through" ? "" : "line-through";
+          break;
+        case "code":
+          if (!el.classList.contains("rabbit-code-block")) {
+            el.classList.add("rabbit-code-block");
+            el.style.fontFamily = "'SF Mono', 'Fira Code', monospace";
+            el.style.background = "#f1f5f9";
+            el.style.padding = "12px";
+            el.style.borderRadius = "6px";
+          } else {
+            el.classList.remove("rabbit-code-block");
+            el.style.fontFamily = "";
+            el.style.background = "";
+            el.style.padding = "";
+            el.style.borderRadius = "";
+          }
+          break;
+      }
     }
     Rabbit._el?.focus();
   };
@@ -341,33 +375,61 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
         el.style.marginTop = "1em";
         break;
       case "list":
-        if (!el.textContent?.startsWith("• ")) {
+        if (el.textContent?.startsWith("☐ ")) {
+          el.innerHTML = "• " + el.innerHTML.replace("☐ ", "");
+        } else if (!el.textContent?.startsWith("• ")) {
           el.innerHTML = "• " + el.innerHTML;
         }
         break;
       case "checklist":
-        el.innerHTML = "☐ " + el.innerHTML.replace("☐ ", "");
+        if (el.textContent?.startsWith("• ")) {
+          el.innerHTML = "☐ " + el.innerHTML.replace("• ", "");
+        } else if (!el.textContent?.startsWith("☐ ")) {
+          el.innerHTML = "☐ " + el.innerHTML;
+        }
         break;
       case "quote":
-        el.style.borderLeft = "4px solid #6366f1";
-        el.style.paddingLeft = "20px";
-        el.style.marginLeft = "0";
-        el.style.fontStyle = "italic";
-        el.style.color = "#4b5563";
+        if (el.style.borderLeft && el.style.borderLeft.includes("4px solid")) {
+          el.style.borderLeft = "";
+          el.style.paddingLeft = "";
+          el.style.marginLeft = "";
+          el.style.fontStyle = "";
+          el.style.color = "";
+        } else {
+          el.style.borderLeft = "4px solid #6366f1";
+          el.style.paddingLeft = "20px";
+          el.style.marginLeft = "0";
+          el.style.fontStyle = "italic";
+          el.style.color = "#4b5563";
+        }
         break;
       case "codeblock":
-        el.style.fontFamily = "'Fira Code', monospace";
-        el.style.background = "#f1f5f9";
-        el.style.padding = "16px";
-        el.style.borderRadius = "8px";
-        el.style.overflow = "auto";
+        if (el.classList.contains("rabbit-code-block")) {
+          el.classList.remove("rabbit-code-block");
+          el.style.fontFamily = "";
+          el.style.background = "";
+          el.style.padding = "";
+          el.style.borderRadius = "";
+          el.style.overflow = "";
+        } else {
+          el.classList.add("rabbit-code-block");
+          el.style.fontFamily = "'SF Mono', 'Fira Code', monospace";
+          el.style.background = "#f1f5f9";
+          el.style.padding = "16px";
+          el.style.borderRadius = "8px";
+          el.style.overflow = "auto";
+        }
         break;
-      case "delimiter":
+      case "delimiter": {
         const del = document.createElement("div");
         del.className = "ce-delimiter cdx-block";
+        const newP = document.createElement("p");
+        newP.innerHTML = "<br>";
         el.insertAdjacentElement("afterend", del);
+        del.insertAdjacentElement("afterend", newP);
         break;
-      case "table":
+      }
+      case "table": {
         const table = document.createElement("table");
         table.className = "rabbit-table";
         table.innerHTML = `
@@ -375,23 +437,36 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
           <tr><td></td><td></td><td></td></tr>
           <tr><td></td><td></td><td></td></tr>
         `;
+        const newP = document.createElement("p");
+        newP.innerHTML = "<br>";
         el.insertAdjacentElement("afterend", table);
+        table.insertAdjacentElement("afterend", newP);
         break;
+      }
       case "warning":
-        el.style.background = "#fef3c7";
-        el.style.border = "1px solid #f59e0b";
-        el.style.borderRadius = "8px";
-        el.style.padding = "16px";
-        el.innerHTML = "⚠ " + el.innerHTML;
+        if (el.style.background && el.style.background.includes("fef3c7")) {
+          el.style.background = "";
+          el.style.border = "";
+          el.style.borderRadius = "";
+          el.style.padding = "";
+          el.innerHTML = el.innerHTML.replace("⚠ ", "");
+        } else {
+          el.style.background = "#fef3c7";
+          el.style.border = "1px solid #f59e0b";
+          el.style.borderRadius = "8px";
+          el.style.padding = "16px";
+          el.innerHTML = "⚠ " + el.innerHTML;
+        }
         break;
       case "align-left":
-        el.style.textAlign = "left";
+        el.style.textAlign = el.style.textAlign === "left" ? "" : "left";
         break;
       case "align-center":
-        el.style.textAlign = "center";
+        el.style.textAlign = el.style.textAlign === "center" ? "" : "center";
         break;
       case "align-right":
-        el.style.textAlign = "right";
+        el.style.textAlign = el.style.textAlign === "right" ? "" : "right";
+        break;
         break;
     }
     Rabbit._el?.focus();
