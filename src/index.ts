@@ -3,9 +3,10 @@ export { Rabbit } from "./rabbit";
 
 //! local use
 
-// import { default_RabbitSetup } from "./default";
-// import { Rabbit } from "./rabbit";
+import { default_RabbitSetup } from "./default";
+import { Rabbit } from "./rabbit";
 // creating a rabbit instance
-// const BigFatRabbit = new Rabbit();
-// default_RabbitSetup(BigFatRabbit);
-// BigFatRabbit.installOn("pub");
+const BigFatRabbit = new Rabbit();
+default_RabbitSetup(BigFatRabbit);
+BigFatRabbit.installOn("pub");
+BigFatRabbit._ActivateActions();

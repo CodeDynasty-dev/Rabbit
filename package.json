@@ -1,6 +1,6 @@
 {
-  "name": "Rabbit.js",
-  "version": "0.0.0",
+  "name": "rabbit-editor",
+  "version": "1.0.0",
   "description": "A bare bone Text Editor library for javascript, Aimed to be small, simple, efficient and easy to extend.",
   "main": "dist/index.mjs",
   "files": [
@@ -13,7 +13,8 @@
     "pack": "npm pack && mv Rabbit.js-0.0.0.tgz ~"
   },
   "keywords": [
-    "text editor"
+    "text editor",
+    "rabbit editor"
   ],
   "author": "friday candour",
   "license": "MIT",

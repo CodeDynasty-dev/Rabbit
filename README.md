@@ -1,7 +1,7 @@
 <br/>
 <p align="center">
-  <a href="https://github.com/fridaycandour/rabbit">
-<img src="./src/rabbit.png" width='200' >
+  <a href="https://codedynasty-dev.github.io/Rabbit/">
+<img src="https://github.com/CodeDynasty-dev/Rabbit/raw/main/src/rabbit.png" width='200' >
 </img>
   </a>
 
