@@ -2,7 +2,6 @@ import { throttle } from "./tools";
 import redo from "./icons/redo.png";
 import undo from "./icons/undo.png";
 import { css } from "./css";
-import { me } from "./tools";
 import { ACTION_TYPES, BEHAVIOR_TYPES, SyntheticAction } from "./types";
 
 export class Rabbit {

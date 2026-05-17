@@ -35,7 +35,10 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
     const toolbar = document.createElement("div");
     toolbar.className = "rabbit-toolbar";
 
-    const createGroup = (tools: { name: string; icon: string; action: () => void }[], label?: string) => {
+    const createGroup = (
+      tools: { name: string; icon: string; action: () => void }[],
+      label?: string,
+    ) => {
       const group = document.createElement("div");
       group.className = "rabbit-tool-group";
 
@@ -44,7 +47,7 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
       groupLabel.textContent = label || "";
       if (label) group.appendChild(groupLabel);
 
-      tools.forEach(tool => {
+      tools.forEach((tool) => {
         const btn = document.createElement("button");
         btn.className = "rabbit-tool-btn";
         btn.title = tool.name;
@@ -60,40 +63,128 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
       return group;
     };
 
-    const formattingGroup = createGroup([
-      { name: "Bold", icon: SVG.bold, action: () => applyInlineFormat("bold") },
-      { name: "Italic", icon: SVG.italic, action: () => applyInlineFormat("italic") },
-      { name: "Strikethrough", icon: SVG.strike, action: () => applyInlineFormat("strike") },
-      { name: "Code", icon: SVG.code, action: () => applyInlineFormat("code") },
-      { name: "Text", icon: SVG.text, action: () => Rabbit.showModal("text-setting", Rabbit.selectedElement) },
-    ], "Format");
+    const formattingGroup = createGroup(
+      [
+        {
+          name: "Bold",
+          icon: SVG.bold,
+          action: () => applyInlineFormat("bold"),
+        },
+        {
+          name: "Italic",
+          icon: SVG.italic,
+          action: () => applyInlineFormat("italic"),
+        },
+        {
+          name: "Strikethrough",
+          icon: SVG.strike,
+          action: () => applyInlineFormat("strike"),
+        },
+        {
+          name: "Code",
+          icon: SVG.code,
+          action: () => applyInlineFormat("code"),
+        },
+        {
+          name: "Text",
+          icon: SVG.text,
+          action: () =>
+            Rabbit.showModal("text-setting", Rabbit.selectedElement),
+        },
+      ],
+      "Format",
+    );
 
-    const insertGroup = createGroup([
-      { name: "Heading", icon: SVG.heading, action: () => applyBlockFormat("heading") },
-      { name: "List", icon: SVG.list, action: () => applyBlockFormat("list") },
-      { name: "Checklist", icon: SVG.checklist, action: () => applyBlockFormat("checklist") },
-      { name: "Quote", icon: SVG.quote, action: () => applyBlockFormat("quote") },
-      { name: "Code Block", icon: SVG.codeBlock, action: () => applyBlockFormat("codeblock") },
-      { name: "Delimiter", icon: SVG.delimiter, action: () => applyBlockFormat("delimiter") },
-      { name: "Table", icon: SVG.table, action: () => applyBlockFormat("table") },
-      { name: "Warning", icon: SVG.warning, action: () => applyBlockFormat("warning") },
-    ], "Insert");
+    const insertGroup = createGroup(
+      [
+        {
+          name: "Heading",
+          icon: SVG.heading,
+          action: () => applyBlockFormat("heading"),
+        },
+        {
+          name: "List",
+          icon: SVG.list,
+          action: () => applyBlockFormat("list"),
+        },
+        {
+          name: "Checklist",
+          icon: SVG.checklist,
+          action: () => applyBlockFormat("checklist"),
+        },
+        {
+          name: "Quote",
+          icon: SVG.quote,
+          action: () => applyBlockFormat("quote"),
+        },
+        {
+          name: "Code Block",
+          icon: SVG.codeBlock,
+          action: () => applyBlockFormat("codeblock"),
+        },
+        {
+          name: "Delimiter",
+          icon: SVG.delimiter,
+          action: () => applyBlockFormat("delimiter"),
+        },
+        {
+          name: "Table",
+          icon: SVG.table,
+          action: () => applyBlockFormat("table"),
+        },
+        {
+          name: "Warning",
+          icon: SVG.warning,
+          action: () => applyBlockFormat("warning"),
+        },
+      ],
+      "Insert",
+    );
 
-    const mediaGroup = createGroup([
-      { name: "Image", icon: SVG.image, action: () => insertImage() },
-      { name: "Link", icon: SVG.link, action: () => Rabbit.showModal("link", { selection: Rabbit.selection, range: Rabbit.range }) },
-    ], "Media");
+    const mediaGroup = createGroup(
+      [
+        { name: "Image", icon: SVG.image, action: () => insertImage() },
+        {
+          name: "Link",
+          icon: SVG.link,
+          action: () =>
+            Rabbit.showModal("link", {
+              selection: Rabbit.selection,
+              range: Rabbit.range,
+            }),
+        },
+      ],
+      "Media",
+    );
 
-    const alignGroup = createGroup([
-      { name: "Align Left", icon: SVG.alignLeft, action: () => applyBlockFormat("align-left") },
-      { name: "Align Center", icon: SVG.alignCenter, action: () => applyBlockFormat("align-center") },
-      { name: "Align Right", icon: SVG.alignRight, action: () => applyBlockFormat("align-right") },
-    ], "Align");
+    const alignGroup = createGroup(
+      [
+        {
+          name: "Align Left",
+          icon: SVG.alignLeft,
+          action: () => applyBlockFormat("align-left"),
+        },
+        {
+          name: "Align Center",
+          icon: SVG.alignCenter,
+          action: () => applyBlockFormat("align-center"),
+        },
+        {
+          name: "Align Right",
+          icon: SVG.alignRight,
+          action: () => applyBlockFormat("align-right"),
+        },
+      ],
+      "Align",
+    );
 
-    const historyGroup = createGroup([
-      { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
-      { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
-    ], "History");
+    const historyGroup = createGroup(
+      [
+        { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
+        { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
+      ],
+      "History",
+    );
 
     toolbar.appendChild(formattingGroup);
     toolbar.appendChild(insertGroup);
@@ -102,6 +193,101 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
     toolbar.appendChild(historyGroup);
 
     document.body.appendChild(toolbar);
+
+    createMobileFAB();
+  };
+
+  const createMobileFAB = () => {
+    const existingFab = document.querySelector(".rabbit-fab");
+    if (existingFab) existingFab.remove();
+
+    const fab = document.createElement("button");
+    fab.className = "rabbit-fab";
+    fab.innerHTML = SVG.plus;
+    fab.title = "Tools";
+
+    const fabMenu = document.createElement("div");
+    fabMenu.className = "rabbit-fab-menu";
+
+    const fabActions = [
+      { name: "Bold", icon: SVG.bold, action: () => applyInlineFormat("bold") },
+      {
+        name: "Italic",
+        icon: SVG.italic,
+        action: () => applyInlineFormat("italic"),
+      },
+      {
+        name: "Strike",
+        icon: SVG.strike,
+        action: () => applyInlineFormat("strike"),
+      },
+      { name: "Code", icon: SVG.code, action: () => applyInlineFormat("code") },
+      {
+        name: "Heading",
+        icon: SVG.heading,
+        action: () => applyBlockFormat("heading"),
+      },
+      { name: "List", icon: SVG.list, action: () => applyBlockFormat("list") },
+      {
+        name: "Quote",
+        icon: SVG.quote,
+        action: () => applyBlockFormat("quote"),
+      },
+      { name: "Image", icon: SVG.image, action: () => insertImage() },
+      {
+        name: "Link",
+        icon: SVG.link,
+        action: () =>
+          Rabbit.showModal("link", {
+            selection: Rabbit.selection,
+            range: Rabbit.range,
+          }),
+      },
+      // { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
+      // { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
+    ];
+
+    let isFabOpen = false;
+
+    fab.onclick = (e) => {
+      e.stopPropagation();
+      isFabOpen = !isFabOpen;
+      fab.classList.toggle("open", isFabOpen);
+      fabMenu.classList.toggle("open", isFabOpen);
+
+      if (isFabOpen) {
+        fabMenu.innerHTML = "";
+        fabActions.forEach((action, index) => {
+          const item = document.createElement("button");
+          item.className = "rabbit-fab-item";
+          item.innerHTML = action.icon;
+          item.title = action.name;
+          item.style.animationDelay = `${index * 0.05}s`;
+          item.onclick = (evt) => {
+            evt.stopPropagation();
+            action.action();
+            isFabOpen = false;
+            fab.classList.remove("open");
+            fabMenu.classList.remove("open");
+          };
+          const span = document.createElement("span");
+          span.innerText = action.name;
+          item.appendChild(span);
+          fabMenu.appendChild(item);
+        });
+      }
+    };
+
+    document.addEventListener("click", () => {
+      if (isFabOpen) {
+        isFabOpen = false;
+        fab.classList.remove("open");
+        fabMenu.classList.remove("open");
+      }
+    });
+
+    fab.appendChild(fabMenu);
+    document.body.appendChild(fab);
   };
 
   const applyInlineFormat = (format: string) => {
