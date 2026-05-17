@@ -39,7 +39,10 @@ export class Rabbit {
     }
   }
   installOn(id: string = "pub", html?: string) {
-    const el = document.getElementById(id)!;
+    const el = document.getElementById(id);
+    if (!el) {
+      throw new Error(`Element with id "${id}" not found`);
+    }
     // console.log(el);
 
     if (window.outerWidth < 601) {
@@ -92,31 +95,36 @@ export class Rabbit {
   }
 
   showModal(call: string, data: unknown = null) {
-    if (Array.isArray(this._modalList[call])) {
-      this._Mel!.innerHTML = "";
-      const h = this._modalList[call][0](data);
-      if (h) {
-        this._Mel!.appendChild(h);
-        this._Mel!.classList.remove("in-active");
-        this._Mel!.classList.add("active");
-      }
+    if (!this._Mel || !Array.isArray(this._modalList[call])) {
+      return;
+    }
+    this._Mel.innerHTML = "";
+    const h = this._modalList[call][0](data);
+    if (h) {
+      this._Mel.appendChild(h);
+      this._Mel.classList.remove("in-active");
+      this._Mel.classList.add("active");
     }
   }
   navigateModal(call: string, index: number, data: unknown) {
-    if (Array.isArray(this._modalList)) {
-      this._Mel!.innerHTML = "";
-      const h = this._modalList[index][call](data);
-      if (h) {
-        this._Mel!.appendChild(h);
-        this._Mel!.classList.remove("in-active");
-        this._Mel!.classList.add("active");
-      }
+    if (!this._Mel || !Array.isArray(this._modalList[call])) {
+      return;
+    }
+    this._Mel.innerHTML = "";
+    const h = this._modalList[call][index](data);
+    if (h) {
+      this._Mel.appendChild(h);
+      this._Mel.classList.remove("in-active");
+      this._Mel.classList.add("active");
     }
   }
 
   hideModal() {
-    this._Mel!.classList.remove("active");
-    this._Mel!.classList.add("in-active");
+    if (!this._Mel) {
+      return;
+    }
+    this._Mel.classList.remove("active");
+    this._Mel.classList.add("in-active");
   }
   fireSyntheticAction(type: SyntheticAction) {
     // @ts-ignore
@@ -291,7 +299,7 @@ export class Rabbit {
   }
 
   _undo() {
-    if (this._doStack.length > 0) {
+    if (this._do_index > 0) {
       this._do_index -= 1;
       const previousState = this._doStack.at(this._do_index);
       if (previousState) {
@@ -300,7 +308,7 @@ export class Rabbit {
     }
   }
   _redo() {
-    if (this._doStack.length > 0) {
+    if (this._do_index < this._doStack.length - 1) {
       this._do_index += 1;
       const nextState = this._doStack.at(this._do_index);
       if (nextState) {
@@ -314,7 +322,7 @@ export class Rabbit {
         if (type.includes("document-")) {
           document.addEventListener(type.split("document-")[1], actions[i]);
         } else if (type.includes("synthetic-")) {
-          this._syntheticActionList[type] = actions[0];
+          this._syntheticActionList[type] = actions[i];
         } else {
           this._el!.addEventListener(type, actions[i]);
         }
