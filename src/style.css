@@ -24,7 +24,9 @@
 * {
   box-sizing: border-box;
 }
-
+.rabbit-toolbar-logo {
+  max-width: 50px;
+}
 /* ===== EDITOR CONTAINER ===== */
 .rabbit-editor-container {
   padding: 32px;
@@ -151,6 +153,16 @@
 
 .rabbit-tool-btn:active {
   transform: translateY(0);
+}
+
+.rabbit-tool-btn.active {
+  background: linear-gradient(135deg, var(--rabbit-primary) 0%, var(--rabbit-accent) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.rabbit-tool-btn.active svg {
+  filter: brightness(1.2);
 }
 
 .rabbit-tool-btn::after {
@@ -641,6 +653,15 @@
   background: var(--rabbit-danger) !important;
 }
 
+.rabbit-tooltip-menu-item.active {
+  background: var(--rabbit-primary);
+  color: white;
+}
+
+.rabbit-tooltip-menu-item.active .rabbit-tooltip-icon-left {
+  color: white;
+}
+
 .rabbit-tooltip-icon-left {
   display: inline-flex;
   align-items: center;
@@ -928,3 +949,113 @@
 }
 
 /* ===== RABBIT CSS ===== */
+/* ===== CHECKLIST ===== */
+.rabbit-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: var(--rabbit-transition);
+  flex-shrink: 0;
+}
+
+.rabbit-checkbox:hover {
+  transform: scale(1.1);
+}
+
+.rabbit-editor-container p .rabbit-checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--rabbit-radius-sm);
+  background: rgba(99, 102, 241, 0.04);
+  margin: 4px 0;
+  transition: var(--rabbit-transition);
+}
+
+.rabbit-editor-container p .rabbit-checkbox-container:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.rabbit-editor-container p .rabbit-checkbox-content {
+  flex: 1;
+  min-height: 20px;
+}
+
+/* ===== IMPROVED TABLE ===== */
+.rabbit-table-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.rabbit-table-controls button {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid var(--rabbit-border);
+  background: var(--rabbit-surface);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--rabbit-transition);
+}
+
+.rabbit-table-controls button:hover {
+  background: var(--rabbit-primary);
+  color: white;
+  border-color: var(--rabbit-primary);
+}
+
+.rabbit-table td:focus {
+  outline: 2px solid var(--rabbit-primary);
+  outline-offset: -2px;
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* ===== MODAL POSITIONING FIX ===== */
+.rabbit-modal.active {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.rabbit-modal.in-active {
+  display: none;
+}
+
+/* ===== LINK STYLES ===== */
+.rabbit-link {
+  color: var(--rabbit-primary);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: var(--rabbit-transition);
+}
+
+.rabbit-link:hover {
+  text-decoration-style: solid;
+  color: var(--rabbit-primary-hover);
+}
+
+/* ===== LIST STYLES ===== */
+.rabbit-editor-container p[style*="list-style-type"] {
+  padding-left: 24px;
+}
+
+.rabbit-editor-container p:has(> .rabbit-checkbox-container) {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.rabbit-editor-container p:has(> .rabbit-checkbox-container):hover {
+  background: transparent !important;
+}

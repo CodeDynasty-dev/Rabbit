@@ -464,14 +464,45 @@ export class Rabbit {
       { type: "delimiter", label: "Delimiter", icon: "—" },
       { type: "table", label: "Table", icon: "▦" },
       { type: "html", label: "Raw HTML", icon: "</>" },
-      { type: "warning", label: "Warning", icon: "!" },
       { type: "checklist", label: "Checklist", icon: "☑" },
     ];
+
+    const getActiveState = (type: string): boolean => {
+      if (!this.selectedElement) return false;
+      const el = this.selectedElement;
+      switch (type) {
+        case "text":
+          return !!(!el.style.fontSize?.includes("em") && !el.style.fontWeight);
+        case "heading":
+          return (
+            !!el.style.fontSize?.includes("em") &&
+            el.style.fontWeight === "bold"
+          );
+        case "list":
+          return !!el.textContent?.startsWith("• ");
+        case "checklist":
+          return !!el.textContent?.startsWith("☐ ");
+        case "quote":
+          return !!el.style.borderLeft?.includes("solid");
+        case "code":
+          return !!el.classList.contains("rabbit-code-block");
+
+        case "delimiter":
+          return !!el.classList.contains("ce-delimiter");
+        case "table":
+          return el.tagName === "TABLE";
+        default:
+          return false;
+      }
+    };
 
     addItems.forEach((item) => {
       const div = document.createElement("div");
       div.className = "rabbit-tooltip-menu-item";
       div.dataset.type = item.type;
+      if (getActiveState(item.type)) {
+        div.classList.add("active");
+      }
       div.innerHTML = `<span class="rabbit-tooltip-icon-left"></span>${item.icon} ${item.label}`;
       addMenu.appendChild(div);
     });
@@ -613,22 +644,74 @@ export class Rabbit {
         newBlock = document.createElement("div");
         newBlock.className = "ce-delimiter cdx-block";
         break;
-      case "table":
-        newBlock.innerHTML =
-          "<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>";
+      case "table": {
+        const table = document.createElement("table");
+        table.className = "rabbit-table";
+        table.contentEditable = "true";
+
+        // Create 3x3 table
+        for (let i = 0; i < 3; i++) {
+          const row = document.createElement("tr");
+          for (let j = 0; j < 3; j++) {
+            const cell = document.createElement("td");
+            cell.innerHTML = "<br>";
+            cell.style.minWidth = "100px";
+            cell.style.minHeight = "40px";
+            cell.style.padding = "8px";
+            cell.style.border = "1px solid #e2e8f0";
+            cell.style.cursor = "text";
+            row.appendChild(cell);
+          }
+          table.appendChild(row);
+        }
+        newBlock = table;
         break;
+      }
       case "html":
         newBlock.innerHTML = "<code>&lt;html&gt;</code>";
         break;
-      case "warning":
-        newBlock.style.background = "#fff3cd";
-        newBlock.style.border = "1px solid #ffc107";
-        newBlock.style.padding = "10px";
-        newBlock.innerHTML = "⚠ Warning";
+
+      case "checklist": {
+        const checkbox = document.createElement("span");
+        checkbox.className = "rabbit-checkbox";
+        checkbox.innerHTML = "☐";
+        checkbox.contentEditable = "false";
+        checkbox.style.cursor = "pointer";
+        checkbox.style.marginRight = "8px";
+        checkbox.style.userSelect = "none";
+
+        checkbox.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (checkbox.innerHTML === "☐") {
+            checkbox.innerHTML = "☑";
+            checkbox.style.color = "#10b981";
+          } else {
+            checkbox.innerHTML = "☐";
+            checkbox.style.color = "";
+          }
+        };
+
+        const content = document.createElement("span");
+        content.innerHTML = "<br>";
+        content.style.flex = "1";
+
+        const container = document.createElement("div");
+        container.style.display = "flex";
+        container.style.alignItems = "flex-start";
+        container.style.gap = "8px";
+        container.style.padding = "4px 0";
+
+        container.appendChild(checkbox);
+        container.appendChild(content);
+
+        newBlock.innerHTML = "";
+        newBlock.appendChild(container);
+        newBlock.style.padding = "8px 12px";
+        newBlock.style.borderRadius = "6px";
+        newBlock.style.background = "rgba(99, 102, 241, 0.04)";
         break;
-      case "checklist":
-        newBlock.innerHTML = "☐ ";
-        break;
+      }
     }
     this._el.appendChild(newBlock);
     newBlock.scrollIntoView({ behavior: "smooth" });

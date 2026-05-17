@@ -23,7 +23,7 @@ const SVG = {
   x: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
   table: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v3H5V5h15zm-5 14h-5v-9h5v9zM5 10h3v9H5v-9zm12 9v-9h3v9h-3z"/></svg>`,
   codeBlock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>`,
-  warning: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>`,
+
   delimiter: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h2v2H4v-2zm7-5h2v7h-2V6zm7 5h2v2h-2v-2z"/></svg>`,
 };
 
@@ -34,6 +34,35 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
 
     const toolbar = document.createElement("div");
     toolbar.className = "rabbit-toolbar";
+    const logo = document.createElement("img");
+    logo.src = "/rabbit.png";
+    logo.className = "rabbit-toolbar-logo";
+    toolbar.appendChild(logo);
+
+    const activeStates: Record<string, () => boolean> = {
+      "Bold": () => !!(Rabbit.selectedElement?.style.fontWeight === "bold" || (Rabbit.range?.commonAncestorContainer.parentNode as HTMLElement)?.style.fontWeight === "bold"),
+      "Italic": () => !!(Rabbit.selectedElement?.style.fontStyle === "italic" || (Rabbit.range?.commonAncestorContainer.parentNode as HTMLElement)?.style.fontStyle === "italic"),
+      "Strikethrough": () => !!(Rabbit.selectedElement?.style.textDecoration === "line-through" || (Rabbit.range?.commonAncestorContainer.parentNode as HTMLElement)?.style.textDecoration === "line-through"),
+      "Code": () => !!(Rabbit.selectedElement?.classList.contains("rabbit-code-block") || (Rabbit.range?.commonAncestorContainer.parentNode as HTMLElement)?.classList.contains("rabbit-code-block")),
+      "Heading": () => Rabbit.selectedElement?.style.fontSize === "1.75em",
+      "List": () => !!Rabbit.selectedElement?.textContent?.startsWith("• "),
+      "Checklist": () => !!Rabbit.selectedElement?.textContent?.startsWith("☐ "),
+      "Quote": () => !!Rabbit.selectedElement?.style.borderLeft?.includes("4px solid"),
+      "Code Block": () => !!Rabbit.selectedElement?.classList.contains("rabbit-code-block"),
+      "Align Left": () => Rabbit.selectedElement?.style.textAlign === "left",
+      "Align Center": () => Rabbit.selectedElement?.style.textAlign === "center",
+      "Align Right": () => Rabbit.selectedElement?.style.textAlign === "right",
+    };
+
+    const updateActiveStates = () => {
+      Object.keys(activeStates).forEach((toolName) => {
+        const btn = document.querySelector(`.rabbit-tool-btn[title="${toolName}"]`) as HTMLElement;
+        if (btn) {
+          const isActive = activeStates[toolName]?.() || false;
+          btn.classList.toggle("active", isActive);
+        }
+      });
+    };
 
     const createGroup = (
       tools: { name: string; icon: string; action: () => void }[],
@@ -41,11 +70,6 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
     ) => {
       const group = document.createElement("div");
       group.className = "rabbit-tool-group";
-
-      const groupLabel = document.createElement("span");
-      groupLabel.className = "rabbit-group-label";
-      groupLabel.textContent = label || "";
-      if (label) group.appendChild(groupLabel);
 
       tools.forEach((tool) => {
         const btn = document.createElement("button");
@@ -56,6 +80,7 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
         btn.onclick = (e) => {
           e.preventDefault();
           tool.action();
+          setTimeout(() => updateActiveStates(), 50);
         };
         group.appendChild(btn);
       });
@@ -132,11 +157,6 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
           icon: SVG.table,
           action: () => applyBlockFormat("table"),
         },
-        {
-          name: "Warning",
-          icon: SVG.warning,
-          action: () => applyBlockFormat("warning"),
-        },
       ],
       "Insert",
     );
@@ -195,6 +215,8 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
     document.body.appendChild(toolbar);
 
     createMobileFAB();
+    
+    setInterval(updateActiveStates, 300);
   };
 
   const createMobileFAB = () => {
@@ -375,17 +397,63 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
         el.style.marginTop = "1em";
         break;
       case "list":
-        if (el.textContent?.startsWith("☐ ")) {
-          el.innerHTML = "• " + el.innerHTML.replace("☐ ", "");
-        } else if (!el.textContent?.startsWith("• ")) {
+        if (el.textContent?.startsWith("• ")) {
+          // Remove list formatting
+          el.innerHTML = el.innerHTML.replace("• ", "");
+        } else {
+          // Add list formatting
           el.innerHTML = "• " + el.innerHTML;
         }
         break;
       case "checklist":
-        if (el.textContent?.startsWith("• ")) {
-          el.innerHTML = "☐ " + el.innerHTML.replace("• ", "");
-        } else if (!el.textContent?.startsWith("☐ ")) {
-          el.innerHTML = "☐ " + el.innerHTML;
+        if (
+          el.textContent?.startsWith("☐ ") ||
+          el.textContent?.startsWith("☑ ")
+        ) {
+          // Remove checklist formatting
+          el.innerHTML = el.innerHTML.replace(/^[☐☑] /, "");
+        } else {
+          // Add checklist formatting with clickable checkbox
+          const checkbox = document.createElement("span");
+          checkbox.className = "rabbit-checkbox";
+          checkbox.innerHTML = "☐";
+          checkbox.contentEditable = "false";
+          checkbox.style.cursor = "pointer";
+          checkbox.style.marginRight = "8px";
+          checkbox.style.userSelect = "none";
+
+          checkbox.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (checkbox.innerHTML === "☐") {
+              checkbox.innerHTML = "☑";
+              checkbox.style.color = "#10b981";
+            } else {
+              checkbox.innerHTML = "☐";
+              checkbox.style.color = "";
+            }
+          };
+
+          // Preserve existing content
+          const content = document.createElement("span");
+          content.innerHTML = el.innerHTML;
+          content.style.flex = "1";
+
+          // Create container
+          const container = document.createElement("div");
+          container.style.display = "flex";
+          container.style.alignItems = "flex-start";
+          container.style.gap = "8px";
+          container.style.padding = "4px 0";
+
+          container.appendChild(checkbox);
+          container.appendChild(content);
+
+          el.innerHTML = "";
+          el.appendChild(container);
+          el.style.padding = "8px 12px";
+          el.style.borderRadius = "6px";
+          el.style.background = "rgba(99, 102, 241, 0.04)";
         }
         break;
       case "quote":
@@ -432,32 +500,96 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
       case "table": {
         const table = document.createElement("table");
         table.className = "rabbit-table";
-        table.innerHTML = `
-          <tr><td></td><td></td><td></td></tr>
-          <tr><td></td><td></td><td></td></tr>
-          <tr><td></td><td></td><td></td></tr>
-        `;
+        table.contentEditable = "true";
+
+        // Create 3x3 table
+        for (let i = 0; i < 3; i++) {
+          const row = document.createElement("tr");
+          for (let j = 0; j < 3; j++) {
+            const cell = document.createElement("td");
+            cell.innerHTML = "<br>";
+            cell.style.minWidth = "100px";
+            cell.style.minHeight = "40px";
+            cell.style.padding = "8px";
+            cell.style.border = "1px solid var(--rabbit-border)";
+            cell.style.cursor = "text";
+
+            // Make cells editable
+            cell.onclick = (e) => {
+              e.stopPropagation();
+              const range = document.createRange();
+              const selection = window.getSelection();
+              range.selectNodeContents(cell);
+              range.collapse(false);
+              selection?.removeAllRanges();
+              selection?.addRange(range);
+            };
+
+            row.appendChild(cell);
+          }
+          table.appendChild(row);
+        }
+
         const newP = document.createElement("p");
         newP.innerHTML = "<br>";
         el.insertAdjacentElement("afterend", table);
         table.insertAdjacentElement("afterend", newP);
+
+        // Add table controls
+        const controls = document.createElement("div");
+        controls.className = "rabbit-table-controls";
+        controls.style.display = "flex";
+        controls.style.gap = "8px";
+        controls.style.marginTop = "8px";
+        controls.style.marginBottom = "16px";
+
+        const addRowBtn = document.createElement("button");
+        addRowBtn.textContent = "+ Row";
+        addRowBtn.className = "rabbit-btn-primary";
+        addRowBtn.style.padding = "4px 8px";
+        addRowBtn.style.fontSize = "12px";
+        addRowBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const newRow = document.createElement("tr");
+          const cols = table.rows[0]?.cells.length || 3;
+          for (let j = 0; j < cols; j++) {
+            const cell = document.createElement("td");
+            cell.innerHTML = "<br>";
+            cell.style.minWidth = "100px";
+            cell.style.minHeight = "40px";
+            cell.style.padding = "8px";
+            cell.style.border = "1px solid var(--rabbit-border)";
+            newRow.appendChild(cell);
+          }
+          table.appendChild(newRow);
+        };
+
+        const addColBtn = document.createElement("button");
+        addColBtn.textContent = "+ Column";
+        addColBtn.className = "rabbit-btn-primary";
+        addColBtn.style.padding = "4px 8px";
+        addColBtn.style.fontSize = "12px";
+        addColBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          for (let i = 0; i < table.rows.length; i++) {
+            const cell = document.createElement("td");
+            cell.innerHTML = "<br>";
+            cell.style.minWidth = "100px";
+            cell.style.minHeight = "40px";
+            cell.style.padding = "8px";
+            cell.style.border = "1px solid var(--rabbit-border)";
+            table.rows[i].appendChild(cell);
+          }
+        };
+
+        controls.appendChild(addRowBtn);
+        controls.appendChild(addColBtn);
+        table.insertAdjacentElement("afterend", controls);
         break;
       }
-      case "warning":
-        if (el.style.background && el.style.background.includes("fef3c7")) {
-          el.style.background = "";
-          el.style.border = "";
-          el.style.borderRadius = "";
-          el.style.padding = "";
-          el.innerHTML = el.innerHTML.replace("⚠ ", "");
-        } else {
-          el.style.background = "#fef3c7";
-          el.style.border = "1px solid #f59e0b";
-          el.style.borderRadius = "8px";
-          el.style.padding = "16px";
-          el.innerHTML = "⚠ " + el.innerHTML;
-        }
-        break;
+
       case "align-left":
         el.style.textAlign = el.style.textAlign === "left" ? "" : "left";
         break;
@@ -466,7 +598,6 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
         break;
       case "align-right":
         el.style.textAlign = el.style.textAlign === "right" ? "" : "right";
-        break;
         break;
     }
     Rabbit._el?.focus();
@@ -559,33 +690,71 @@ export const default_RabbitSetup = (Rabbit: Rabbit) => {
     const content = document.createElement("div");
     content.className = "rabbit-popover-content";
 
-    const input = document.createElement("input");
-    input.className = "rabbit-input";
-    input.placeholder = "Enter URL...";
-    input.id = "rabbit-link-input";
+    const urlInput = document.createElement("input");
+    urlInput.className = "rabbit-input";
+    urlInput.placeholder = "https://example.com";
+    urlInput.id = "rabbit-link-input";
+    urlInput.type = "url";
+
+    const textInput = document.createElement("input");
+    textInput.className = "rabbit-input";
+    textInput.placeholder = "Link text (optional)";
+    textInput.id = "rabbit-link-text";
+    textInput.style.marginTop = "12px";
 
     const btnRow = document.createElement("div");
     btnRow.className = "rabbit-popover-actions";
+    btnRow.style.marginTop = "16px";
 
     const insertBtn = document.createElement("button");
     insertBtn.className = "rabbit-btn-primary";
     insertBtn.textContent = "Insert Link";
     insertBtn.onclick = () => {
-      const url = (input as HTMLInputElement).value;
+      const url = (urlInput as HTMLInputElement).value;
+      const text =
+        (textInput as HTMLInputElement).value || Rabbit.selection || url;
+
       if (url && Rabbit.range) {
         const a = document.createElement("a");
         a.href = url;
-        a.textContent = Rabbit.selection || url;
+        a.textContent = text;
         a.target = "_blank";
+        a.rel = "noopener noreferrer";
         a.className = "rabbit-link";
-        Rabbit.range.deleteContents();
-        Rabbit.range.insertNode(a);
+
+        // If there's a selection, replace it with the link
+        if (Rabbit.selection && Rabbit.selection.length > 0) {
+          Rabbit.range.deleteContents();
+          Rabbit.range.insertNode(a);
+        } else {
+          // If no selection, insert the link at cursor position
+          Rabbit.range.insertNode(a);
+
+          // Move cursor after the link
+          const newRange = document.createRange();
+          newRange.setStartAfter(a);
+          newRange.collapse(true);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(newRange);
+        }
       }
       Rabbit.hideModal();
     };
 
+    // Auto-focus the URL input
+    setTimeout(() => {
+      urlInput.focus();
+    }, 10);
+
+    // Auto-fill text input with selection if available
+    if (Rabbit.selection) {
+      textInput.value = Rabbit.selection;
+    }
+
     btnRow.appendChild(insertBtn);
-    content.appendChild(input);
+    content.appendChild(urlInput);
+    content.appendChild(textInput);
     content.appendChild(btnRow);
 
     return createPopover("Insert Link", content);
