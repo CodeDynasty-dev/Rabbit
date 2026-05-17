@@ -21,9 +21,7 @@ const SVG = {
   chevronDown: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>`,
   plus: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>`,
   x: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
-  table: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v3H5V5h15zm-5 14h-5v-9h5v9zM5 10h3v9H5v-9zm12 9v-9h3v9h-3z"/></svg>`,
   codeBlock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>`,
-
   delimiter: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 11h2v2H4v-2zm7-5h2v7h-2V6zm7 5h2v2h-2v-2z"/></svg>`,
 };
 
@@ -151,11 +149,6 @@ const activeStates: Record<string, () => boolean> = {
           name: "Delimiter",
           icon: SVG.delimiter,
           action: () => applyBlockFormat("delimiter"),
-        },
-        {
-          name: "Table",
-          icon: SVG.table,
-          action: () => applyBlockFormat("table"),
         },
       ],
       "Insert",
@@ -519,51 +512,6 @@ const activeStates: Record<string, () => boolean> = {
           el.insertAdjacentElement("afterend", del);
           del.insertAdjacentElement("afterend", newP);
           del.nextElementSibling?.scrollIntoView({ behavior: "smooth" });
-        }
-        break;
-      }
-case "table": {
-        if (el.tagName === "TABLE") {
-          const content = el.textContent || "";
-          el.remove();
-          const newP = document.createElement("p");
-          newP.innerHTML = content || "<br>";
-          if (el.parentNode) {
-            el.parentNode.insertBefore(newP, el.nextSibling);
-          }
-        } else {
-          const table = document.createElement("table");
-          table.className = "rabbit-table";
-          table.contentEditable = "true";
-
-          for (let i = 0; i < 3; i++) {
-            const row = document.createElement("tr");
-            for (let j = 0; j < 3; j++) {
-              const cell = document.createElement("td");
-              cell.innerHTML = "<br>";
-              cell.style.minWidth = "100px";
-              cell.style.minHeight = "40px";
-              cell.style.padding = "8px";
-              cell.style.border = "1px solid var(--rabbit-border)";
-              cell.style.cursor = "text";
-
-              cell.onclick = (e) => {
-                e.stopPropagation();
-                const range = document.createRange();
-                const sel = window.getSelection();
-                range.selectNodeContents(cell);
-                if (sel) {
-                  sel.removeAllRanges();
-                  sel.addRange(range);
-                }
-              };
-
-              row.appendChild(cell);
-            }
-            table.appendChild(row);
-          }
-
-el.insertAdjacentElement("afterend", table);
         }
         break;
       }

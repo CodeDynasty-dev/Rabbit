@@ -499,7 +499,6 @@ const addItems = [
       { type: "quote", label: "Quote", icon: '"' },
       { type: "code", label: "Code Block", icon: "<>" },
       { type: "delimiter", label: "Delimiter", icon: "—" },
-      { type: "table", label: "Table", icon: "▦" },
     ];
 
     const getActiveState = (type: string): boolean => {
@@ -520,8 +519,6 @@ const addItems = [
           return !!el.classList.contains("rabbit-code-block");
         case "delimiter":
           return !!el.classList.contains("ce-delimiter");
-        case "table":
-          return el.tagName === "TABLE";
         default:
           return false;
       }
@@ -675,72 +672,6 @@ const addItems = [
         newBlock = document.createElement("div");
         newBlock.className = "ce-delimiter cdx-block";
         break;
-      case "table": {
-        const table = document.createElement("table");
-        table.className = "rabbit-table";
-        table.contentEditable = "true";
-
-        // Create 3x3 table
-        for (let i = 0; i < 3; i++) {
-          const row = document.createElement("tr");
-          for (let j = 0; j < 3; j++) {
-            const cell = document.createElement("td");
-            cell.innerHTML = "<br>";
-            cell.style.minWidth = "100px";
-            cell.style.minHeight = "40px";
-            cell.style.padding = "8px";
-            cell.style.border = "1px solid #e2e8f0";
-            cell.style.cursor = "text";
-            row.appendChild(cell);
-          }
-          table.appendChild(row);
-        }
-        newBlock = table;
-        break;
-      }
-      case "html":
-        newBlock.innerHTML = "<code>&lt;html&gt;</code>";
-        break;
-
-      case "checklist": {
-        const checkbox = document.createElement("span");
-        checkbox.className = "rabbit-checkbox";
-        checkbox.innerHTML = "☐";
-        checkbox.contentEditable = "false";
-        checkbox.style.cursor = "pointer";
-        checkbox.style.marginRight = "8px";
-        checkbox.style.userSelect = "none";
-        checkbox.style.fontSize = "16px";
-        checkbox.style.lineHeight = "1";
-
-        checkbox.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          checkbox.innerHTML = checkbox.innerHTML === "☐" ? "☑" : "☐";
-          checkbox.style.color = checkbox.innerHTML === "☑" ? "#10b981" : "";
-        };
-
-        const content = document.createElement("span");
-        content.innerHTML = "<br>";
-        content.style.flex = "1";
-
-        const container = document.createElement("div");
-        container.className = "rabbit-checklist-container";
-        container.style.display = "flex";
-        container.style.alignItems = "center";
-        container.style.gap = "8px";
-        container.style.padding = "4px 0";
-
-        container.appendChild(checkbox);
-        container.appendChild(content);
-
-        newBlock.innerHTML = "";
-        newBlock.appendChild(container);
-        newBlock.style.padding = "8px 12px";
-        newBlock.style.borderRadius = "6px";
-        newBlock.style.background = "rgba(99, 102, 241, 0.04)";
-        break;
-      }
     }
     this._el.appendChild(newBlock);
     newBlock.scrollIntoView({ behavior: "smooth" });

@@ -701,25 +701,6 @@
   display: none;
 }
 
-/* ===== TABLE ===== */
-.rabbit-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 16px 0;
-  border-radius: var(--rabbit-radius-sm);
-  overflow: hidden;
-}
-
-.rabbit-table td {
-  border: 1px solid var(--rabbit-border);
-  padding: 12px;
-  min-width: 80px;
-}
-
-.rabbit-table tr:first-child td {
-  background: #f8fafc;
-}
-
 /* ===== INLINE STYLES ===== */
 .rabbit-bold {
   font-weight: 700;
@@ -984,36 +965,6 @@
 .rabbit-editor-container p .rabbit-checkbox-content {
   flex: 1;
   min-height: 20px;
-}
-
-/* ===== IMPROVED TABLE ===== */
-.rabbit-table-controls {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  margin-bottom: 16px;
-}
-
-.rabbit-table-controls button {
-  padding: 4px 8px;
-  font-size: 12px;
-  border: 1px solid var(--rabbit-border);
-  background: var(--rabbit-surface);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: var(--rabbit-transition);
-}
-
-.rabbit-table-controls button:hover {
-  background: var(--rabbit-primary);
-  color: white;
-  border-color: var(--rabbit-primary);
-}
-
-.rabbit-table td:focus {
-  outline: 2px solid var(--rabbit-primary);
-  outline-offset: -2px;
-  background: rgba(99, 102, 241, 0.05);
 }
 
 /* ===== MODAL POSITIONING FIX ===== */
