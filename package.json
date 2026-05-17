@@ -10,7 +10,8 @@
     "dev": "vite",
     "build:page": "vite build",
     "build": "deno run --allow-all build.ts && tsup lib/index.ts && npm run pack",
-    "pack": "npm pack && mv Rabbit.js-0.0.0.tgz ~"
+    "pack": "npm pack && mv Rabbit.js-0.0.0.tgz ~",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [
     "text editor",
@@ -19,6 +20,7 @@
   "author": "friday candour",
   "license": "MIT",
   "devDependencies": {
+    "gh-pages": "^6.3.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
     "vite": "^4.4.9"
