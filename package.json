@@ -1,6 +1,6 @@
 {
   "name": "rabbit-editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A bare bone Text Editor library for javascript, Aimed to be small, simple, efficient and easy to extend.",
   "main": "dist/index.mjs",
   "files": [
