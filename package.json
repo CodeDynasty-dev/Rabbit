@@ -8,10 +8,10 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build:page": "vite build",
+    "build:page": "vite build && echo 'rabbit.codedynasty.dev' >> CNAME",
     "build": "deno run --allow-all build.ts && tsup lib/index.ts && npm run pack",
     "pack": "npm pack && mv Rabbit.js-0.0.0.tgz ~",
-    "deploy": "gh-pages -d dist"
+    "deploy": "npm run build:page &&  git subtree push --prefix dist origin gh-pages"
   },
   "keywords": [
     "text editor",
