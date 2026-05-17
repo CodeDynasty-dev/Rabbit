@@ -11,7 +11,6 @@
     "build:page": "vite build && echo 'rabbit.codedynasty.dev' >> dist/CNAME",
     "build": "deno run --allow-all build.ts && tsup lib/index.ts && npm run pack",
     "pack": "npm pack && mv Rabbit.js-0.0.0.tgz ~",
-    "deploy": "npm run build:page &&  git subtree push --prefix dist origin gh-pages",
     "deploy": "npm run build:page && git subtree split --prefix dist -b temp-gh-pages && git push origin temp-gh-pages:gh-pages --force && git branch -D temp-gh-pages"
   },
   "keywords": [
