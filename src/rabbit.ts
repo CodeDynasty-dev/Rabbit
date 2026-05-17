@@ -79,7 +79,7 @@ export class Rabbit {
       }) => void;
       image?: string;
       html?: HTMLDivElement;
-    }
+    },
   ) {
     //! checking type
     this._toolsList[name] = tool;
@@ -166,10 +166,12 @@ export class Rabbit {
         const lineText = node.textContent || "";
         if (lineText && node.parentNode?.nodeName === "P") {
           this.selection = range.toString() as unknown as string;
-          this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
+          this.selectedElement =
+            node.parentNode as unknown as HTMLParagraphElement;
           this.range = range as typeof range;
         } else if (lineText && node.parentNode?.nodeName === "SPAN") {
-          this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
+          this.selectedElement =
+            node.parentNode as unknown as HTMLParagraphElement;
         }
       }
     };
@@ -194,14 +196,20 @@ export class Rabbit {
           if (node.parentNode?.nodeName === "P") {
             const parentP = node.parentNode as HTMLParagraphElement;
             const currentAlign = parentP.style.textAlign;
-            if (currentAlign === "center" || currentAlign === "right" || currentAlign === "left") {
+            if (
+              currentAlign === "center" ||
+              currentAlign === "right" ||
+              currentAlign === "left"
+            ) {
               setTimeout(() => {
                 const newSelection = window.getSelection();
                 if (newSelection && newSelection.rangeCount > 0) {
                   const newRange = newSelection.getRangeAt(0);
                   const newNode = newRange.startContainer;
                   if (newNode.parentNode?.nodeName === "P") {
-                    (newNode.parentNode as HTMLParagraphElement).style.textAlign = "left";
+                    (
+                      newNode.parentNode as HTMLParagraphElement
+                    ).style.textAlign = "left";
                   }
                 }
               }, 0);
@@ -234,7 +242,8 @@ export class Rabbit {
           const range = select.getRangeAt(0);
           const node = range.startContainer;
           if (node.parentNode?.nodeName === "P") {
-            this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
+            this.selectedElement =
+              node.parentNode as unknown as HTMLParagraphElement;
             this.range = range as typeof range;
             if (!this.selectedElement.innerText.trim()) {
               this.selectedElement.removeAttribute("style");
@@ -252,9 +261,11 @@ export class Rabbit {
 
     this._el?.addEventListener("blur", () => {
       setTimeout(() => {
-        if (document.activeElement !== this._el && 
-            document.activeElement !== this._tooltip && 
-            !this._tooltip?.contains(document.activeElement)) {
+        if (
+          document.activeElement !== this._el &&
+          document.activeElement !== this._tooltip &&
+          !this._tooltip?.contains(document.activeElement)
+        ) {
           this._hideTooltip();
         }
       }, 100);
@@ -263,10 +274,12 @@ export class Rabbit {
     document.addEventListener("click", (e) => {
       if (this._tooltip && this._tooltip.style.display !== "none") {
         const target = e.target as HTMLElement;
-        if (!this._tooltip.contains(target) && 
-            !target.closest(".rabbit-tool-container") &&
-            target !== this._el &&
-            !this._el?.contains(target)) {
+        if (
+          !this._tooltip.contains(target) &&
+          !target.closest(".rabbit-tool-container") &&
+          target !== this._el &&
+          !this._el?.contains(target)
+        ) {
           this._hideTooltip();
         }
       }
@@ -318,43 +331,11 @@ export class Rabbit {
       e.preventDefault();
     });
 
-    for (const command in this._toolsList) {
-      let l: HTMLElement | null = null;
-      if (this._toolsList[command].image) {
-        l = me("img", {
-          src: this._toolsList[command].image,
-          className: "rabbit-tool",
-        });
-      }
-      if (this._toolsList[command].text) {
-        l = me(
-          "button",
-          {
-            className: "rabbit-tool",
-          },
-          this._toolsList[command].text
-        );
-      }
-      if (this._toolsList[command].html) {
-        this._toolsList[command].html.className = "rabbit-tool";
-        l = this._toolsList[command].html;
-      }
-      l!.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this._apply(command);
-      });
-      l!.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-      });
-      l!.title = command;
-      toolContainer.appendChild(l!);
-    }
     toolContainer.appendChild(modal);
     this._Mel = modal;
     this._tooltip = tooltip;
     document.body.appendChild(tooltip);
-    this._el!.parentElement?.appendChild(toolContainer);
+    document.body.appendChild(toolContainer);
   }
 
   _showTooltip(_element: HTMLElement, x: number, y: number) {
@@ -385,14 +366,15 @@ export class Rabbit {
     const moveMenu = document.createElement("div");
     moveMenu.className = "rabbit-tooltip-menu rabbit-tooltip-move-menu";
 
-    const isHeader = this.selectedElement?.style.fontWeight === "bold" && 
-                     (this.selectedElement?.style.fontSize?.includes("em") || 
-                      this.selectedElement?.tagName === "H1" ||
-                      this.selectedElement?.tagName === "H2" ||
-                      this.selectedElement?.tagName === "H3" ||
-                      this.selectedElement?.tagName === "H4" ||
-                      this.selectedElement?.tagName === "H5" ||
-                      this.selectedElement?.tagName === "H6");
+    const isHeader =
+      this.selectedElement?.style.fontWeight === "bold" &&
+      (this.selectedElement?.style.fontSize?.includes("em") ||
+        this.selectedElement?.tagName === "H1" ||
+        this.selectedElement?.tagName === "H2" ||
+        this.selectedElement?.tagName === "H3" ||
+        this.selectedElement?.tagName === "H4" ||
+        this.selectedElement?.tagName === "H5" ||
+        this.selectedElement?.tagName === "H6");
 
     if (isHeader) {
       const headerSizes = [
@@ -404,11 +386,12 @@ export class Rabbit {
         { level: "6", label: "H6" },
       ];
       const headerMenu = document.createElement("div");
-      headerMenu.className = "rabbit-tooltip-menu-item rabbit-tooltip-menu-parent";
+      headerMenu.className =
+        "rabbit-tooltip-menu-item rabbit-tooltip-menu-parent";
       headerMenu.innerHTML = "Header size ›";
       const headerSub = document.createElement("div");
       headerSub.className = "rabbit-tooltip-submenu";
-      headerSizes.forEach(h => {
+      headerSizes.forEach((h) => {
         const item = document.createElement("div");
         item.className = "rabbit-tooltip-submenu-item";
         item.dataset.headerLevel = h.level;
@@ -418,18 +401,25 @@ export class Rabbit {
       headerMenu.appendChild(headerSub);
       moveMenu.appendChild(headerMenu);
 
-      headerSub.querySelectorAll(".rabbit-tooltip-submenu-item").forEach(item => {
-        item.addEventListener("click", (e) => {
-          const level = (e.target as HTMLElement).dataset.headerLevel;
-          const sizes: Record<string, string> = {
-            "1": "2em", "2": "1.5em", "3": "1.25em", "4": "1em", "5": "0.875em", "6": "0.75em"
-          };
-          this.selectedElement!.style.fontSize = sizes[level!];
-          this.selectedElement!.style.fontWeight = "bold";
-          this._hideTooltip();
-          this._el?.focus();
+      headerSub
+        .querySelectorAll(".rabbit-tooltip-submenu-item")
+        .forEach((item) => {
+          item.addEventListener("click", (e) => {
+            const level = (e.target as HTMLElement).dataset.headerLevel;
+            const sizes: Record<string, string> = {
+              "1": "2em",
+              "2": "1.5em",
+              "3": "1.25em",
+              "4": "1em",
+              "5": "0.875em",
+              "6": "0.75em",
+            };
+            this.selectedElement!.style.fontSize = sizes[level!];
+            this.selectedElement!.style.fontWeight = "bold";
+            this._hideTooltip();
+            this._el?.focus();
+          });
         });
-      });
     }
 
     const convertTo = document.createElement("div");
@@ -479,7 +469,7 @@ export class Rabbit {
       { type: "checklist", label: "Checklist", icon: "☑" },
     ];
 
-    addItems.forEach(item => {
+    addItems.forEach((item) => {
       const div = document.createElement("div");
       div.className = "rabbit-tooltip-menu-item";
       div.dataset.type = item.type;
@@ -490,13 +480,15 @@ export class Rabbit {
     moveBtn.onclick = (e) => {
       e.stopPropagation();
       addMenu.style.display = "none";
-      moveMenu.style.display = moveMenu.style.display === "block" ? "none" : "block";
+      moveMenu.style.display =
+        moveMenu.style.display === "block" ? "none" : "block";
     };
 
     plusBtn.onclick = (e) => {
       e.stopPropagation();
       moveMenu.style.display = "none";
-      addMenu.style.display = addMenu.style.display === "block" ? "none" : "block";
+      addMenu.style.display =
+        addMenu.style.display === "block" ? "none" : "block";
     };
 
     convertTo.onmouseenter = () => {
@@ -506,18 +498,23 @@ export class Rabbit {
       convertSub.style.display = "none";
     };
 
-    convertSub.querySelectorAll(".rabbit-tooltip-submenu-item").forEach(item => {
-      item.addEventListener("click", (e) => {
-        const type = (e.target as HTMLElement).dataset.type;
-        this._handleConvert(type!);
-        this._hideTooltip();
-        this._el?.focus();
+    convertSub
+      .querySelectorAll(".rabbit-tooltip-submenu-item")
+      .forEach((item) => {
+        item.addEventListener("click", (e) => {
+          const type = (e.target as HTMLElement).dataset.type;
+          this._handleConvert(type!);
+          this._hideTooltip();
+          this._el?.focus();
+        });
       });
-    });
 
     moveUp.onclick = () => {
       if (this.selectedElement?.previousElementSibling) {
-        this.selectedElement.parentNode?.insertBefore(this.selectedElement, this.selectedElement.previousElementSibling);
+        this.selectedElement.parentNode?.insertBefore(
+          this.selectedElement,
+          this.selectedElement.previousElementSibling,
+        );
       }
       this._hideTooltip();
       this._el?.focus();
@@ -525,7 +522,10 @@ export class Rabbit {
 
     moveDown.onclick = () => {
       if (this.selectedElement?.nextElementSibling) {
-        this.selectedElement.parentNode?.insertBefore(this.selectedElement.nextElementSibling, this.selectedElement);
+        this.selectedElement.parentNode?.insertBefore(
+          this.selectedElement.nextElementSibling,
+          this.selectedElement,
+        );
       }
       this._hideTooltip();
       this._el?.focus();
@@ -537,7 +537,7 @@ export class Rabbit {
       this._el?.focus();
     };
 
-    addMenu.querySelectorAll(".rabbit-tooltip-menu-item").forEach(item => {
+    addMenu.querySelectorAll(".rabbit-tooltip-menu-item").forEach((item) => {
       item.addEventListener("click", (e) => {
         const type = (e.currentTarget as HTMLElement).dataset.type;
         this._handleAddBlock(type!);
@@ -615,7 +615,8 @@ export class Rabbit {
         newBlock.className = "ce-delimiter cdx-block";
         break;
       case "table":
-        newBlock.innerHTML = "<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>";
+        newBlock.innerHTML =
+          "<table><tr><td></td><td></td></tr><tr><td></td><td></td></tr></table>";
         break;
       case "html":
         newBlock.innerHTML = "<code>&lt;html&gt;</code>";
