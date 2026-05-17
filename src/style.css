@@ -192,7 +192,7 @@
   transform: translateX(-50%) translateY(0);
 }
 
-.rabbit-tool-group:not(:first-child)::before {
+/* .rabbit-tool-group:not(:first-child)::before {
   content: "";
   position: absolute;
   left: -16px;
@@ -201,7 +201,7 @@
   width: 1px;
   height: 32px;
   background: var(--rabbit-border);
-}
+} */
 
 /* ===== PREMIUM POPOVER ===== */
 .rabbit-popover {
