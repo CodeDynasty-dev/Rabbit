@@ -12,7 +12,7 @@ A bare bone Text Editor library for javascript
 Aimed to be small, simple, efficient and easy to extend.
     <br/>
     <br/>
-    <a href="https://codedynasty-dev.github.io/Rabbit//index.html" align="center">
+    <a href="https://codedynasty-dev.github.io/Rabbit/index.html" align="center">
     Live Test
     </a>
     <br/> 
