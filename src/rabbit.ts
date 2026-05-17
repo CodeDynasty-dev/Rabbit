@@ -8,6 +8,7 @@ import { ACTION_TYPES, BEHAVIOR_TYPES, SyntheticAction } from "./types";
 export class Rabbit {
   _el: HTMLElement | undefined;
   _Mel: HTMLElement | undefined;
+  _tooltip: HTMLElement | undefined;
   _doStack: string[] = [];
   _do_index: number = 0;
   _STACK_SIZE: number = 1000;
@@ -18,6 +19,7 @@ export class Rabbit {
   selection: string | null = null;
   selectedElement: HTMLParagraphElement | null = null;
   range: Range | null = null;
+  _lastSavedIndex: number = -1;
   _actionList: Record<ACTION_TYPES, ((e: any) => void)[]> = {
     input: [],
     paste: [],
@@ -131,7 +133,6 @@ export class Rabbit {
     this._syntheticActionList[type]?.call();
   }
   _createDefaultActions() {
-    // auto format
     const autoformat = async () => {
       const selection = window.getSelection()!;
       if (selection.rangeCount > 0) {
@@ -152,12 +153,11 @@ export class Rabbit {
           if (node.nodeName === "IMG") {
             par.removeChild(node);
             par!.insertAdjacentElement("afterend", node);
-            console.log(node, par);
           }
         }
       }
     };
-    // auto get selection content
+
     const getSelection = async () => {
       const select = window.getSelection()!;
       if (select.rangeCount > 0) {
@@ -166,15 +166,10 @@ export class Rabbit {
         const lineText = node.textContent || "";
         if (lineText && node.parentNode?.nodeName === "P") {
           this.selection = range.toString() as unknown as string;
-          // this.selection = lineText as unknown as string;
-          this.selectedElement =
-            node.parentNode as unknown as HTMLParagraphElement;
+          this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
           this.range = range as typeof range;
-        } else {
-          if (lineText && node.parentNode?.nodeName === "SPAN") {
-            this.selectedElement =
-              node.parentNode as unknown as HTMLParagraphElement;
-          }
+        } else if (lineText && node.parentNode?.nodeName === "SPAN") {
+          this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
         }
       }
     };
@@ -186,8 +181,36 @@ export class Rabbit {
         if (!element.innerText.trim()) {
           element.removeAttribute("style");
         }
+        this._showTooltip(element, e.clientX, e.clientY);
       }
     };
+
+    const handleEnter = async (ke: KeyboardEvent) => {
+      if (ke.key === "Enter") {
+        const selection = window.getSelection()!;
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const node = range.startContainer;
+          if (node.parentNode?.nodeName === "P") {
+            const parentP = node.parentNode as HTMLParagraphElement;
+            const currentAlign = parentP.style.textAlign;
+            if (currentAlign === "center" || currentAlign === "right" || currentAlign === "left") {
+              setTimeout(() => {
+                const newSelection = window.getSelection();
+                if (newSelection && newSelection.rangeCount > 0) {
+                  const newRange = newSelection.getRangeAt(0);
+                  const newNode = newRange.startContainer;
+                  if (newNode.parentNode?.nodeName === "P") {
+                    (newNode.parentNode as HTMLParagraphElement).style.textAlign = "left";
+                  }
+                }
+              }, 0);
+            }
+          }
+        }
+      }
+    };
+
     document.addEventListener("keydown", async (ke) => {
       if (/(ArrowUp|ArrowDown|Enter)/.test(ke.key)) {
         const select = window.getSelection()!;
@@ -195,22 +218,44 @@ export class Rabbit {
           const range = select.getRangeAt(0);
           const node = range.startContainer;
           if (node.parentNode?.nodeName === "P") {
-            this.selectedElement =
-              node.parentNode as unknown as HTMLParagraphElement;
+            this.selectedElement = node.parentNode as unknown as HTMLParagraphElement;
             this.range = range as typeof range;
-            // console.log(this.selectedElement);
             if (!this.selectedElement.innerText.trim()) {
               this.selectedElement.removeAttribute("style");
             }
           }
         }
-      } else {
-        if (ke.key === "Esc" || ke.key === "Escape") {
-          this.hideModal();
+      }
+      if (ke.key === "Enter") {
+        handleEnter(ke);
+      } else if (ke.key === "Esc" || ke.key === "Escape") {
+        this.hideModal();
+        this._hideTooltip();
+      }
+    });
+
+    this._el?.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (document.activeElement !== this._el && 
+            document.activeElement !== this._tooltip && 
+            !this._tooltip?.contains(document.activeElement)) {
+          this._hideTooltip();
+        }
+      }, 100);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (this._tooltip && this._tooltip.style.display !== "none") {
+        const target = e.target as HTMLElement;
+        if (!this._tooltip.contains(target) && 
+            !target.closest(".rabbit-tool-container") &&
+            target !== this._el &&
+            !this._el?.contains(target)) {
+          this._hideTooltip();
         }
       }
     });
-    // auto save
+
     const auto_save_throttler = throttle(async () => {
       this._saveState();
     }, this._STACKING_TIME);
@@ -238,6 +283,12 @@ export class Rabbit {
   _installTools() {
     const toolContainer = document.createElement("div");
     const modal = document.createElement("div");
+    const tooltip = document.createElement("div");
+
+    tooltip.className = "rabbit-tooltip";
+    tooltip.style.display = "none";
+    tooltip.style.position = "absolute";
+    tooltip.style.zIndex = "1000";
 
     if (window.outerWidth < 601) {
       toolContainer.className = "rabbit-tool-container mobile";
@@ -246,6 +297,11 @@ export class Rabbit {
       toolContainer.className = "rabbit-tool-container";
       modal.className = "rabbit-modal";
     }
+
+    toolContainer.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+    });
+
     for (const command in this._toolsList) {
       let l: HTMLElement | null = null;
       if (this._toolsList[command].image) {
@@ -267,13 +323,66 @@ export class Rabbit {
         this._toolsList[command].html.className = "rabbit-tool";
         l = this._toolsList[command].html;
       }
-      l!.addEventListener("click", () => this._apply(command));
+      l!.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._apply(command);
+      });
+      l!.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+      });
       l!.title = command;
       toolContainer.appendChild(l!);
     }
     toolContainer.appendChild(modal);
     this._Mel = modal;
+    this._tooltip = tooltip;
+    document.body.appendChild(tooltip);
     this._el!.parentElement?.appendChild(toolContainer);
+  }
+
+  _showTooltip(_element: HTMLElement, x: number, y: number) {
+    if (!this._tooltip || !this.selectedElement) return;
+
+    this._tooltip.innerHTML = "";
+
+    const alignLeft = me("button", { className: "rabbit-tooltip-btn" }, "⫷");
+    const alignCenter = me("button", { className: "rabbit-tooltip-btn" }, "⫶");
+    const alignRight = me("button", { className: "rabbit-tooltip-btn" }, "⫸");
+
+    alignLeft.onclick = () => {
+      this.selectedElement!.style.textAlign = "left";
+      this._hideTooltip();
+      this._el?.focus();
+    };
+    alignCenter.onclick = () => {
+      this.selectedElement!.style.textAlign = "center";
+      this._hideTooltip();
+      this._el?.focus();
+    };
+    alignRight.onclick = () => {
+      this.selectedElement!.style.textAlign = "right";
+      this._hideTooltip();
+      this._el?.focus();
+    };
+
+    const toolRow = document.createElement("div");
+    toolRow.style.display = "flex";
+    toolRow.style.gap = "4px";
+    toolRow.appendChild(alignLeft);
+    toolRow.appendChild(alignCenter);
+    toolRow.appendChild(alignRight);
+
+    this._tooltip.appendChild(toolRow);
+    this._tooltip.style.display = "block";
+    this._tooltip.style.top = `${y + 20}px`;
+    this._tooltip.style.left = `${x}px`;
+  }
+
+  _hideTooltip() {
+    if (this._tooltip) {
+      this._tooltip.style.display = "none";
+    }
   }
 
   async _apply(command: string) {
@@ -304,6 +413,7 @@ export class Rabbit {
       const previousState = this._doStack.at(this._do_index);
       if (previousState) {
         this._el!.innerHTML = previousState;
+        this._lastSavedIndex = this._do_index;
       }
     }
   }
@@ -313,6 +423,7 @@ export class Rabbit {
       const nextState = this._doStack.at(this._do_index);
       if (nextState) {
         this._el!.innerHTML = nextState;
+        this._lastSavedIndex = this._do_index;
       }
     }
   }
