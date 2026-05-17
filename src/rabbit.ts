@@ -454,17 +454,15 @@ export class Rabbit {
     const addMenu = document.createElement("div");
     addMenu.className = "rabbit-tooltip-menu rabbit-tooltip-add-menu";
 
-    const addItems = [
+const addItems = [
       { type: "text", label: "Text", icon: "T" },
       { type: "heading", label: "Heading", icon: "H" },
-      { type: "image", label: "Image", icon: "I" },
       { type: "list", label: "List", icon: "•" },
-      { type: "code", label: "Code", icon: "<>" },
+      { type: "checklist", label: "Checklist", icon: "☑" },
       { type: "quote", label: "Quote", icon: '"' },
+      { type: "code", label: "Code Block", icon: "<>" },
       { type: "delimiter", label: "Delimiter", icon: "—" },
       { type: "table", label: "Table", icon: "▦" },
-      { type: "html", label: "Raw HTML", icon: "</>" },
-      { type: "checklist", label: "Checklist", icon: "☑" },
     ];
 
     const getActiveState = (type: string): boolean => {
@@ -472,21 +470,17 @@ export class Rabbit {
       const el = this.selectedElement;
       switch (type) {
         case "text":
-          return !!(!el.style.fontSize?.includes("em") && !el.style.fontWeight);
+          return !el.style.fontSize?.includes("em") && el.style.fontWeight !== "bold";
         case "heading":
-          return (
-            !!el.style.fontSize?.includes("em") &&
-            el.style.fontWeight === "bold"
-          );
+          return el.style.fontSize?.includes("em") && el.style.fontWeight === "bold";
         case "list":
           return !!el.textContent?.startsWith("• ");
         case "checklist":
-          return !!el.textContent?.startsWith("☐ ");
+          return !!el.querySelector(".rabbit-checklist-container");
         case "quote":
           return !!el.style.borderLeft?.includes("solid");
         case "code":
           return !!el.classList.contains("rabbit-code-block");
-
         case "delimiter":
           return !!el.classList.contains("ce-delimiter");
         case "table":
