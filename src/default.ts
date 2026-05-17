@@ -258,8 +258,8 @@ const activeStates: Record<string, () => boolean> = {
             range: Rabbit.range,
           }),
       },
-      { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
-      { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
+      // { name: "Undo", icon: SVG.undo, action: () => Rabbit._undo() },
+      // { name: "Redo", icon: SVG.redo, action: () => Rabbit._redo() },
     ];
 
     let isFabOpen = false;
